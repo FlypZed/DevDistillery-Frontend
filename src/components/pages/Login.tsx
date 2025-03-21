@@ -3,6 +3,9 @@ import { Button, TextField, Box, Typography, Container, CssBaseline } from '@mui
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
 import userServiceInstance from '../../services/UserService';
+import loginWithGithubServiceInstance from '../../services/LoginWithGithubService';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 interface LoginData {
   email: string;
@@ -15,87 +18,123 @@ const schema = yup.object({
 });
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
 
-  const {handleSubmit, control} = useForm<LoginData>({
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard'); 
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      loginWithGithubServiceInstance.loginWithGitHub(code)
+        .then((response: { getContentOrThrowError: () => any; }) => {
+          const token = response.getContentOrThrowError();
+          localStorage.setItem('token', token);
+          navigate('/dashboard');
+        })
+        .catch((error: any) => {
+          console.error('Error during GitHub login:', error);
+          navigate('/login');
+        });
+    }
+  }, [navigate]);
+
+  const { handleSubmit, control } = useForm<LoginData>({
     resolver: yupResolver(schema),
     defaultValues: {
       email: '',
       password: '',
     },
-    
   });
 
   const handleLogin = (data: LoginData) => {
     userServiceInstance.getUser(data.email).then((response) => {
       const data = response.getContentOrThrowError();
       console.log(data);
-    })
+    });
+  };
+
+  const handleGitHubLogin = () => {
+    window.location.href = 'http://localhost:8080/oauth2/authorization/github';
   };
 
   return (
     <Container component="main" maxWidth="xs">
-    <CssBaseline />
-    <Box
-      sx={{
-        marginTop: 8,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-      }}
-    >
-      <Typography component="h1" variant="h5">
-        Iniciar Sesión
-      </Typography>
-      <Box component="form" onSubmit={handleSubmit(handleLogin)} noValidate sx={{ mt: 1 }}>
-        <Controller
-          name="email"
-          control={control}
-          render={({ field, fieldState }) => (
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Correo Electrónico"
-              autoComplete="email"
-              autoFocus
-              {...field}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message}
-            />
-          )}
-        />
-        <Controller
-          name="password"
-          control={control}
-          render={({ field, fieldState }) => (
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Contraseña"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              autoFocus
-              {...field}
-              error={!!fieldState.error}
-              helperText={fieldState.error?.message}
-            />
-          )}
-        />
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-        >
+      <CssBaseline />
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography component="h1" variant="h5">
           Iniciar Sesión
-        </Button>
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit(handleLogin)} noValidate sx={{ mt: 1 }}>
+          <Controller
+            name="email"
+            control={control}
+            render={({ field, fieldState }) => (
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Correo Electrónico"
+                autoComplete="email"
+                autoFocus
+                {...field}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="password"
+            control={control}
+            render={({ field, fieldState }) => (
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Contraseña"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                autoFocus
+                {...field}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Iniciar Sesión
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            sx={{ mt: 1, mb: 2 }}
+            onClick={handleGitHubLogin}
+          >
+            Iniciar Sesión con GitHub
+          </Button>
+        </Box>
       </Box>
-    </Box>
     </Container>
-
   );
 };
 

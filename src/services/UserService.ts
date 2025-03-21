@@ -13,6 +13,6 @@ class UserService {
 
 }
 
-const userServiceInstance = new UserService('/v1/users');
+const userServiceInstance = new UserService('/api/auth/login-github');
 
 export default userServiceInstance;
