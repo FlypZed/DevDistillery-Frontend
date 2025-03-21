@@ -1,6 +1,6 @@
 import ResponseResultDTO from "../models/ResponseResultDTO";
 import User from "../models/User";
-import HttpClientInstance, { HttpClient } from "./HttpClientService";
+import HttpClientInstance from "./HttpClientService";
 
 class UserService {
 
