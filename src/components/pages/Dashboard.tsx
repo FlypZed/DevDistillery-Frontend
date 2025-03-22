@@ -1,10 +1,10 @@
-import { CssBaseline } from "@mui/material";
+import Layout from "../../Layout.tsx";
 
 function Dashboard() {
     return (
         <>
-        <CssBaseline />
-        DashBoard
+            <Layout/>
+            DashBoard
         </>
     );
 }

@@ -1,22 +1,13 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Chip from '@mui/material/Chip';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
-import Avatar from '@mui/material/Avatar';
 import FilterFramesIcon from '@mui/icons-material/FilterFrames';
-import Divider from '@mui/material/Divider';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { createTheme } from '@mui/material/styles';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LiquorIcon from '@mui/icons-material/Liquor';
-import { AppProvider } from '@toolpad/core/AppProvider';
+import { AppProvider, type Session, type Router } from '@toolpad/core/AppProvider';
 import { DashboardLayout, SidebarFooterProps } from '@toolpad/core/DashboardLayout';
+import { Tooltip, Typography, Stack, MenuList, MenuItem, ListItemText, ListItemIcon, Chip, Avatar, Divider, Box } from '@mui/material';
 import {
     Account,
     AccountPreview,
@@ -24,8 +15,15 @@ import {
     SignOutButton,
     AccountPreviewProps,
 } from '@toolpad/core/Account';
-import type { Navigation, Router, Session } from '@toolpad/core/AppProvider';
-import { Tooltip } from '@mui/material';
+import {useNavigate} from 'react-router-dom';
+
+type Navigation = Array<{
+    kind?: 'header';
+    segment?: string;
+    title: string;
+    icon?: React.ReactNode;
+    children?: Navigation;
+}>;
 
 const NAVIGATION: Navigation = [
     {
@@ -38,7 +36,7 @@ const NAVIGATION: Navigation = [
         icon: <DashboardIcon />,
         children: [
             {
-                segment: 'task',
+                segment: 'tasks',
                 title: 'Tasks',
                 icon: <ContentPasteIcon />,
             },
@@ -51,7 +49,7 @@ const NAVIGATION: Navigation = [
     },
 ];
 
-const demoTheme = createTheme({
+export const demoTheme = createTheme({
     cssVariables: {
         colorSchemeSelector: 'data-toolpad-color-scheme',
     },
@@ -224,15 +222,18 @@ const demoSession = {
 
 export default function DashboardLayoutAccountSidebar() {
 
-    const [pathname, setPathname] = React.useState('/dashboard');
+    const navigate = useNavigate();
 
-    const router = React.useMemo<Router>(() => {
+    const router: Router = React.useMemo(() => {
         return {
-            pathname,
+            pathname: window.location.pathname,
             searchParams: new URLSearchParams(),
-            navigate: (path) => setPathname(String(path)),
+            navigate: (url: string | URL) => {
+                const path = typeof url === 'string' ? url : url.toString();
+                navigate(path);
+            },
         };
-    }, [pathname]);
+    }, [navigate]);
 
     function CustomAppTitle() {
         return (
@@ -247,8 +248,6 @@ export default function DashboardLayoutAccountSidebar() {
         );
     }
 
-    // Remove this const when copying and pasting into your project.
-
     const [session, setSession] = React.useState<Session | null>(demoSession);
     const authentication = React.useMemo(() => {
         return {
@@ -257,9 +256,10 @@ export default function DashboardLayoutAccountSidebar() {
             },
             signOut: () => {
                 setSession(null);
+                navigate('/login');
             },
         };
-    }, []);
+    }, [navigate]);
 
     return (
         <AppProvider
@@ -272,7 +272,7 @@ export default function DashboardLayoutAccountSidebar() {
             <DashboardLayout
                 slots={{ toolbarAccount: () => null, sidebarFooter: SidebarFooterAccount, appTitle: CustomAppTitle }}
             >
-                <DemoPageContent pathname={pathname} />
+                <DemoPageContent pathname={window.location.pathname} />
             </DashboardLayout>
         </AppProvider>
     );

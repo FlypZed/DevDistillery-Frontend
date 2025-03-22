@@ -5,7 +5,7 @@ import Login from './components/pages/Login'
 import Board from './components/pages/Board'
 import Tasks from './components/pages/Tasks'
 import { ThemeProvider } from '@mui/material/styles'
-import { customMUITheme } from './AppThemeStyles'
+import { demoTheme } from './Layout.tsx'
 
 function App() {
   
@@ -17,12 +17,12 @@ function App() {
   */
 
   return (
-    <ThemeProvider theme={customMUITheme}>
+    <ThemeProvider theme={demoTheme}>
       <Routes>
         <Route path="/" element={<Home />} /> 
         <Route path="/login" element={<Login />} />
         <Route path="/board" element={<Board />} /> 
-        <Route path="/tasks" element={<Tasks />} /> 
+        <Route path="dashboard/tasks" element={<Tasks />} />
         <Route path="/dashboard" element={<Dashboard />} />
         {/* <Route path="/Code" element={<Code />} /> */}
       </Routes>
